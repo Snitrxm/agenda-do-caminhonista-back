@@ -67,4 +67,18 @@ export class UsersService {
       token: await this._jwtService.signAsync(payload),
     };
   }
+
+  async profile(userId: string) {
+    const user = await this._prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+
+    if (!user) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+
+    return user;
+  }
 }

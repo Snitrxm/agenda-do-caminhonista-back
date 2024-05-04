@@ -33,7 +33,7 @@ model Day {
   date      DateTime
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
-  DayAction DayAction[]
+  actions   DayAction[]
 
   @@index(fields: [date])
   @@map("days")

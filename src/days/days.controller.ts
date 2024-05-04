@@ -3,7 +3,6 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
   Delete,
   Request,
@@ -12,6 +11,7 @@ import {
 import { DaysService } from './days.service';
 import { CreateDayDto } from './dto/create-day.dto';
 import { AuthGuard } from 'src/guards/auth';
+import { CreateActionDto } from './dto/create-action.dto';
 
 @UseGuards(AuthGuard)
 @Controller('days')
@@ -26,14 +26,28 @@ export class DaysController {
     });
   }
 
+  @Post(':dayId/actions')
+  createAction(
+    @Param('dayId') dayId: string,
+    @Body() createActionDto: CreateActionDto,
+  ) {
+    return this.daysService.createAction({
+      ...createActionDto,
+      dayId,
+    });
+  }
+
   @Get()
   findAll(@Request() request) {
     return this.daysService.findAll(request.user.id);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.daysService.findOne(+id);
+  findOne(@Param('id') id: string, @Request() request) {
+    return this.daysService.findOne({
+      dayId: id,
+      userId: request.user.id,
+    });
   }
 
   @Delete(':id')

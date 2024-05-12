@@ -3,6 +3,7 @@ import { CreateDayDto } from './dto/create-day.dto';
 import { PrismaService } from 'src/database/prisma.service';
 import { CreateActionDto } from './dto/create-action.dto';
 import { FindOneDayServiceDto } from './dto/find-one-day-service.dto';
+import { UpdateDayDto } from './dto/update-day.dto';
 
 @Injectable()
 export class DaysService {
@@ -13,6 +14,21 @@ export class DaysService {
       data: {
         date: createDayDto.date,
         userId: createDayDto.userId,
+      },
+    });
+
+    return day;
+  }
+
+  async update(updateDayDto: UpdateDayDto) {
+    const day = await this._prisma.day.update({
+      data: {
+        weekStart: updateDayDto.weekStart,
+        departureKm: updateDayDto.departureKm,
+        arriveKm: updateDayDto.arriveKm,
+      },
+      where: {
+        id: updateDayDto.dayId,
       },
     });
 
@@ -30,10 +46,23 @@ export class DaysService {
     return action;
   }
 
+  async deleteAction(actionId: string) {
+    const action = await this._prisma.dayAction.delete({
+      where: {
+        id: actionId,
+      },
+    });
+
+    return action;
+  }
+
   async findAll(userId: string) {
     const days = await this._prisma.day.findMany({
       where: {
         userId,
+      },
+      include: {
+        actions: true,
       },
       orderBy: {
         date: 'desc',
@@ -59,9 +88,5 @@ export class DaysService {
     });
 
     return days;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} day`;
   }
 }

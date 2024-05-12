@@ -7,11 +7,13 @@ import {
   Delete,
   Request,
   UseGuards,
+  Patch,
 } from '@nestjs/common';
 import { DaysService } from './days.service';
 import { CreateDayDto } from './dto/create-day.dto';
 import { AuthGuard } from 'src/guards/auth';
 import { CreateActionDto } from './dto/create-action.dto';
+import { UpdateDayDto } from './dto/update-day.dto';
 
 @UseGuards(AuthGuard)
 @Controller('days')
@@ -26,6 +28,14 @@ export class DaysController {
     });
   }
 
+  @Patch(':dayId')
+  update(@Param('dayId') dayId: string, @Body() updateDayDto: UpdateDayDto) {
+    return this.daysService.update({
+      ...updateDayDto,
+      dayId,
+    });
+  }
+
   @Post(':dayId/actions')
   createAction(
     @Param('dayId') dayId: string,
@@ -35,6 +45,11 @@ export class DaysController {
       ...createActionDto,
       dayId,
     });
+  }
+
+  @Delete('actions/:actionId')
+  deleteAction(@Param('actionId') actionId: string) {
+    return this.daysService.deleteAction(actionId);
   }
 
   @Get()
@@ -48,10 +63,5 @@ export class DaysController {
       dayId: id,
       userId: request.user.id,
     });
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.daysService.remove(+id);
   }
 }

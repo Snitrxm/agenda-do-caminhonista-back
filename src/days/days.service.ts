@@ -10,14 +10,37 @@ export class DaysService {
   constructor(private _prisma: PrismaService) {}
 
   async create(createDayDto: CreateDayDto) {
-    const day = await this._prisma.day.create({
-      data: {
-        date: createDayDto.date,
+    const userSettings = await this._prisma.settings.findFirst({
+      where: {
         userId: createDayDto.userId,
       },
     });
 
+    const day = await this._prisma.day.create({
+      data: {
+        date: createDayDto.date,
+        userId: createDayDto.userId,
+        truckPlate: userSettings?.defaultTruckPlate,
+        trailerPlate: userSettings?.defaultTrailerPlate,
+      },
+    });
+
     return day;
+  }
+
+  async delete(dayId: string) {
+    await this._prisma.day.delete({
+      where: {
+        id: dayId,
+      },
+      include: {
+        actions: {
+          where: {
+            dayId,
+          },
+        },
+      },
+    });
   }
 
   async update(updateDayDto: UpdateDayDto) {
@@ -26,6 +49,9 @@ export class DaysService {
         weekStart: updateDayDto.weekStart,
         departureKm: updateDayDto.departureKm,
         arriveKm: updateDayDto.arriveKm,
+        drivingMinutes: updateDayDto.drivingMinutes,
+        truckPlate: updateDayDto.truckPlate,
+        trailerPlate: updateDayDto.trailerPlate,
       },
       where: {
         id: updateDayDto.dayId,
@@ -38,7 +64,6 @@ export class DaysService {
   async createAction(createActionDto: CreateActionDto) {
     const action = await this._prisma.dayAction.create({
       data: {
-        dayId: createActionDto.dayId,
         ...createActionDto,
       },
     });

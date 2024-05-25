@@ -13,29 +13,39 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: CreateUserDto) {
-    const userAlreadyExists = await this._prisma.user.findUnique({
-      where: {
-        email: createUserDto.email,
-      },
-    });
+    try {
+      const userAlreadyExists = await this._prisma.user.findUnique({
+        where: {
+          email: createUserDto.email,
+        },
+      });
 
-    if (userAlreadyExists) {
-      throw new HttpException(
-        'User already exists with this email.',
-        HttpStatus.CONFLICT,
-      );
+      if (userAlreadyExists) {
+        throw new HttpException(
+          'User already exists with this email.',
+          HttpStatus.CONFLICT,
+        );
+      }
+
+      const passwordEncrypted = await bcrypt.hash(createUserDto.password, 10);
+
+      const user = await this._prisma.user.create({
+        data: {
+          ...createUserDto,
+          password: passwordEncrypted,
+        },
+      });
+
+      await this._prisma.settings.create({
+        data: {
+          userId: user.id,
+        },
+      });
+
+      return user;
+    } catch (error) {
+      console.log(error);
     }
-
-    const passwordEncrypted = await bcrypt.hash(createUserDto.password, 10);
-
-    const user = await this._prisma.user.create({
-      data: {
-        ...createUserDto,
-        password: passwordEncrypted,
-      },
-    });
-
-    return user;
   }
 
   async login(loginUserDto: LoginUserDto) {

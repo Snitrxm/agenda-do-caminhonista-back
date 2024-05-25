@@ -28,6 +28,11 @@ export class DaysController {
     });
   }
 
+  @Delete(':dayId')
+  delete(@Param('dayId') dayId: string) {
+    return this.daysService.delete(dayId);
+  }
+
   @Patch(':dayId')
   update(@Param('dayId') dayId: string, @Body() updateDayDto: UpdateDayDto) {
     return this.daysService.update({

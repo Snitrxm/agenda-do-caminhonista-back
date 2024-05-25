@@ -1,4 +1,4 @@
-import { IsBoolean, IsNumber, IsOptional } from 'class-validator';
+import { IsBoolean, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class UpdateDayDto {
   dayId: string;
@@ -14,4 +14,16 @@ export class UpdateDayDto {
   @IsNumber()
   @IsOptional()
   arriveKm?: number;
+
+  @IsNumber()
+  @IsOptional()
+  drivingMinutes?: number;
+
+  @IsString()
+  @IsOptional()
+  truckPlate?: string;
+
+  @IsString()
+  @IsOptional()
+  trailerPlate?: string;
 }

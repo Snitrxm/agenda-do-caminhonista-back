@@ -69,4 +69,9 @@ export class DaysController {
       userId: request.user.id,
     });
   }
+
+  @Get('week/hours')
+  weekHours(@Request() request) {
+    return this.daysService.weekHours(request.user.id);
+  }
 }

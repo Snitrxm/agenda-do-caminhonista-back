@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateDayDto } from './dto/create-day.dto';
 import { PrismaService } from 'src/database/prisma.service';
 import { CreateActionDto } from './dto/create-action.dto';
 import { FindOneDayServiceDto } from './dto/find-one-day-service.dto';
 import { UpdateDayDto } from './dto/update-day.dto';
+import { DateUtils } from 'src/@shared/Date.utils';
 
 @Injectable()
 export class DaysService {
@@ -62,6 +63,30 @@ export class DaysService {
   }
 
   async createAction(createActionDto: CreateActionDto) {
+    if (createActionDto.action === 'Pausa 9H') {
+      const all9HBreakInThisWeek = await this._prisma.dayAction.findMany({
+        where: {
+          action: 'Pausa 9H',
+          date: {
+            gte: new Date(
+              DateUtils.getStartOfWeek(new Date(createActionDto.date)),
+            ),
+            lte: new Date(
+              DateUtils.getEndOfWeek(new Date(createActionDto.date)),
+            ),
+          },
+        },
+      });
+
+      // Em uma semana não podemos ter mais de 3 pausas de 9 Horas
+      if (all9HBreakInThisWeek.length === 3) {
+        throw new HttpException(
+          'Já existem 3 pausas de 9 horas nessa semana!',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+    }
+
     const action = await this._prisma.dayAction.create({
       data: {
         ...createActionDto,
@@ -116,29 +141,6 @@ export class DaysService {
   }
 
   async weekHours(userId: string) {
-    function getStartOfWeek(date: Date) {
-      const diaSemana = date.getDay(); // 0 para domingo, 1 para segunda-feira, etc.
-      const primeiroDia = new Date(date); // Cria uma cópia da data fornecida
-
-      // Se não for segunda-feira (dia 1), ajuste para o último domingo (dia 0)
-      if (diaSemana !== 1) {
-        primeiroDia.setDate(
-          date.getDate() - diaSemana + (diaSemana === 0 ? -6 : 1),
-        );
-      }
-
-      // Retorna o primeiro dia da semana
-      return primeiroDia;
-    }
-
-    function getEndOfWeek(date: Date) {
-      const ultimoDia = getStartOfWeek(date); // Obtém o primeiro dia da semana
-      ultimoDia.setDate(ultimoDia.getDate() + 6); // Adiciona 6 dias para obter o último dia da semana
-
-      // Retorna o último dia da semana
-      return ultimoDia;
-    }
-
     const days = await this._prisma.day.findMany({
       where: {
         userId,
@@ -148,8 +150,7 @@ export class DaysService {
     const weeklyData = days.reduce((acc, day) => {
       const date = new Date(day.createdAt);
 
-      // Encontrar o início da semana (segunda-feira) para formar a chave
-      const startOfWeekDate = getStartOfWeek(date);
+      const startOfWeekDate = DateUtils.getStartOfWeek(date);
       const startOfWeekStr = startOfWeekDate.toISOString().split('T')[0];
 
       if (!acc[startOfWeekStr]) {
@@ -161,11 +162,9 @@ export class DaysService {
       return acc;
     }, {});
 
-    // Formatar os dados em um array com início e fim da semana
     const array = [];
     Object.entries(weeklyData).forEach(([weekStart, drivingMinutes]) => {
-      // Encontrar o final da semana (domingo)
-      const weekEndDate = getEndOfWeek(new Date(weekStart));
+      const weekEndDate = DateUtils.getEndOfWeek(new Date(weekStart));
       const weekEndStr = weekEndDate.toISOString().split('T')[0];
 
       const formattedWeekStart = new Date(weekStart).toLocaleDateString(

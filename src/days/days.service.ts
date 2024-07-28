@@ -5,6 +5,7 @@ import { CreateActionDto } from './dto/create-action.dto';
 import { FindOneDayServiceDto } from './dto/find-one-day-service.dto';
 import { UpdateDayDto } from './dto/update-day.dto';
 import { DateUtils } from 'src/@shared/Date.utils';
+import { UpdateActionDto } from './dto/update-action.dto';
 
 @Injectable()
 export class DaysService {
@@ -53,6 +54,7 @@ export class DaysService {
         drivingMinutes: updateDayDto.drivingMinutes,
         truckPlate: updateDayDto.truckPlate,
         trailerPlate: updateDayDto.trailerPlate,
+        observations: updateDayDto.observations,
       },
       where: {
         id: updateDayDto.dayId,
@@ -106,6 +108,20 @@ export class DaysService {
     return action;
   }
 
+  async updateAction(updateActionDto: UpdateActionDto) {
+    const action = await this._prisma.dayAction.update({
+      data: {
+        local: updateActionDto.local,
+        date: updateActionDto.date,
+      },
+      where: {
+        id: updateActionDto.actionId,
+      },
+    });
+
+    return action;
+  }
+
   async findAll(userId: string) {
     const days = await this._prisma.day.findMany({
       where: {
@@ -144,6 +160,9 @@ export class DaysService {
     const days = await this._prisma.day.findMany({
       where: {
         userId,
+      },
+      orderBy: {
+        date: 'desc',
       },
     });
 

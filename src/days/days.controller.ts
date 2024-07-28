@@ -14,6 +14,7 @@ import { CreateDayDto } from './dto/create-day.dto';
 import { AuthGuard } from 'src/guards/auth';
 import { CreateActionDto } from './dto/create-action.dto';
 import { UpdateDayDto } from './dto/update-day.dto';
+import { UpdateActionDto } from './dto/update-action.dto';
 
 @UseGuards(AuthGuard)
 @Controller('days')
@@ -55,6 +56,17 @@ export class DaysController {
   @Delete('actions/:actionId')
   deleteAction(@Param('actionId') actionId: string) {
     return this.daysService.deleteAction(actionId);
+  }
+
+  @Patch('actions/:actionId')
+  updateAction(
+    @Param('actionId') actionId: string,
+    @Body() updateActionDto: UpdateActionDto,
+  ) {
+    return this.daysService.updateAction({
+      ...updateActionDto,
+      actionId,
+    });
   }
 
   @Get()

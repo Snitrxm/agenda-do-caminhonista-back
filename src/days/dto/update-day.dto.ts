@@ -26,4 +26,8 @@ export class UpdateDayDto {
   @IsString()
   @IsOptional()
   trailerPlate?: string;
+
+  @IsString()
+  @IsOptional()
+  observations?: string;
 }

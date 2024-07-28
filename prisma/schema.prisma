@@ -27,6 +27,7 @@ model Day {
   userId         String
   date           DateTime
   weekStart      Boolean     @default(false)
+  observations   String?
   departureKm    Int?
   arriveKm       Int?
   drivingMinutes Int?

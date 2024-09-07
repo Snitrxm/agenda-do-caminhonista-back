@@ -18,12 +18,20 @@ export class DaysService {
       },
     });
 
+    const lastDay = await this._prisma.day.findFirst({
+      orderBy: {
+        createdAt: 'desc',
+      },
+      take: 1,
+    });
+
     const day = await this._prisma.day.create({
       data: {
         date: createDayDto.date,
         userId: createDayDto.userId,
         truckPlate: userSettings?.defaultTruckPlate,
         trailerPlate: userSettings?.defaultTrailerPlate,
+        departureKm: lastDay.arriveKm,
       },
     });
 
